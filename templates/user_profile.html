@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+    <meta charset="utf-8">
+	<link rel='stylesheet' href="../static/css/for_profile.css">
+</head>
+
+<div class="profile">
+    {% if is_file %}
+        <img src="../static/img/avatar/1.png">
+    {% else %}
+        <img src="../static/img/avatar/defaultava.jpg">
+    {% endif %}
+    <p>Имя: {{ user.name }}</p>
+    <p>Фамилия: {{ user.surname }}</p>
+    <p>Логин: {{ user.login }}</p>
+    <div class="btns">
+        <button>Понравившиеся</button>
+        {% if current_user.is_authenticated and user.id == current_user.id %}
+            <button>Изменить профиль</button>
+        {% endif %}
+        <a href="/posts/{{ user.login }}"><button>Посты {{ user.login }}</button></a>
+    </div>
+</div>
+
+{% endblock %}

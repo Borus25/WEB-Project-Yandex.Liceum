@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ page_title }}</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.post_title.label }}<br>
+            {{ form.post_title(class="form-control") }}<br>
+            {% for error in form.post_title.errors %}
+                <p class="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.text_content.label }}<br>
+            {{ form.text_content(class="form-control") }}<br>
+            {% for error in form.text_content.errors %}
+                <p content="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.file.label }}<br>
+            {{ form.file(class="form-control") }}<br>
+            {% for error in form.file.errors %}
+                <p content="alert alert-danger" role="alert">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </p>
+        <p>Тип контента:</p>
+        <p>{{ form.is_blog() }} {{ form.is_blog.label }}</p>
+        <p>{{ form.is_training() }} {{ form.is_training.label }}</p>
+        <p>{{ form.is_recipe() }} {{ form.is_recipe.label }}</p>
+        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        {{ message }}
+    </form>
+{% endblock %}

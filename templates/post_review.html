@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+	<meta charset="utf-8">
+	<link rel='stylesheet' href="../static/css/for_review.css">
+    <script src="https://kit.fontawesome.com/f6dcf461c1.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"/>
+</head>
+
+<div class="container">
+    <div class="post">
+        <div class="post-header">
+            <h1>{{ post.post_name }}</h1>
+            <div class="post-meta">
+                <time>{{ post.create_date }}</time>
+                <a href="/profile/{{ post.creator_login }}"><span class="author">{{ post.creator_name }} {{ post.creator_surname }}</span></a>
+				{% if post.is_blog %}
+                	<span class="category">Блог</span>
+				{% endif %}
+				{% if post.is_training %}
+                	<span class="category">Тренировка</span>
+				{% endif %}
+				{% if post.is_recipe %}
+                	<span class="category">Здоровое питание</span>
+				{% endif %}
+            </div>
+        </div>
+        <div class="post-image">
+            {% if is_file %}
+                <img src="../static/img/1.png">
+            {% else %}
+                <img src="../static/img/default.jpg">
+            {% endif %}
+        </div>
+        <div class="post-content">
+            <p>{{ post.text_content }}</p>
+        </div>
+    </div>
+</div>
+{% if current_user.is_authenticated %}
+<div class="btns">
+    {% if post.is_liked %}
+        <Button onclick="UpdateLike({{ data }})" id="like" class="btn1" style="color: #ff0000;"><i class="fas fa-heart"></i></Button>
+    {% else %}
+        <Button onclick='UpdateLike({{ data }})' id="like" class="btn1" style="color: grey;"><i class="fas fa-heart"></i></Button>
+    {% endif %}
+    <a href="/comments/{{ post.id }}"><Button onmouseover="Toggle21();" onmouseout="Toggle22();" id="comment" class="btn2">
+        <i class="bi bi-chat"></i></Button></a>
+</div>
+{% endif %}
+<script>
+
+    var btn1var = document.getElementById('like')
+
+    function Toggle1(){
+        if (btn1var.style.color == "red"){
+            btn1var.style.color = "grey"
+        } else {
+            btn1var.style.color = "red"
+        }
+    }
+
+    var btn2var = document.getElementById('comment')
+
+    function Toggle21(){
+        if (btn2var.style.color == "#acacdd"){
+            btn2var.style.color = "#fbce50"
+        }
+    }
+
+    function Toggle22(){
+        if (btn2var.style.color == "#fbce50"){
+            btn2var.style.color = "#acacdd"
+        }
+    }
+
+    function UpdateLike(data){
+        const express = require('express');
+        const app = express();
+        const sqlite3 = require('sqlite3');
+  
+        // Connecting Database
+        let db = new sqlite3.Database(":memory:" , (err) => {
+            if(err) {
+                console.log("Error Occurred - " + err.message);
+            }
+            else {
+                console.log("DataBase Connected");
+            }
+        })
+        
+        app.get('/' , (req , res)=>{
+            res.send("GeeksforGeeks");});
+        
+        // Server Running
+        app.listen(4000 , () => {
+            console.log("Server started");
+        });
+
+        var updateQuery = 'UPDATE posts SET is_liked = ? WHERE id = ?';
+
+        db.run(updateQuery, (data[0] * (-1), data[1]), (err) => {
+            if(err) return;
+  
+            // Success
+            console.log("Update Done");
+        });
+        Toggle1();
+    }
+
+</script>
+{% endblock %}

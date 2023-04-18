@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 style="text-align: center">Комментарии к посту {{ login }}</h1>
+<a href="/comments/{{ id }}/add_comment"><button>Оставить комментарий</button></a>
+{% for comment in comments %}
+    <div class="comments">
+        <div class="comment-text">
+            <p>{{ comment.text }}</p>
+        </div>
+        <div class="comment-meta">
+            <time>{{ comment.create_date }}</time>
+            <a href="/profile/{{ comment.author_login }}"><span class="author">{{ comment.author_name }} {{ comment.author_surname }}</span></a>
+        </div>
+        {% if current_user.is_authenticated and comment.author_login == current_user.login %}
+        <div>
+            <a href="/edit_comment/{{ comment.id }}" class="btn btn-warning">Изменить</a>
+        </div>
+        {% endif %}
+    </div>
+{% endfor %}
+{{ message }}
+{% endblock %}
