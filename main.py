@@ -1,5 +1,5 @@
 import json
-from flask import Flask, render_template, redirect, request, abort, make_response
+from flask import Flask, render_template, redirect, request, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import datetime
 from data import db_session
@@ -7,7 +7,7 @@ from data.comments import Comment
 from data.posts import Post
 from data.users import User
 from forms.comment import CommentForm
-from forms.user import RegisterForm, LoginForm
+from forms.user import EditForm, RegisterForm, LoginForm
 from forms.post import PostForm
 import os
 
@@ -17,7 +17,7 @@ login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 
-pathToImg = "C:/Users/Максим/PycharmProjects/WEB site (Yandex Project)/static/img"
+pathToImg = "C:/Users/Maxim/PycharmProjects/WEB site/static/img"
 pathToAvatar = pathToImg + "/avatar"
 
 
@@ -59,7 +59,7 @@ def main():
 def index():
     db_sess = db_session.create_session()
     posts = db_sess.query(Post).all()
-    return render_template("index.html", posts=posts, title="Главная страница")
+    return render_template("index.html", posts=posts, title="Поговорим о ЗОЖ")
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -93,6 +93,9 @@ def login():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.login == form.login.data).first()
         if user and user.check_password(form.password.data):
+            if user.id == 1:
+                user.role = "main admin"
+                db_sess.commit()
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
         return render_template('login.html', message="Неправильный логин или пароль", form=form)
@@ -205,13 +208,61 @@ def profile(login: str):
     return render_template("user_profile.html", user=user, is_file=is_file)
 
 
+@app.route("/edit_profile/<string:login>", methods=['GET', 'POST'])
+def edit_profile(login: str):
+    form = EditForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        user = db_sess.query(User).filter(User.login == login).first()
+        if user:
+            form.surname.data = user.surname
+            form.name.data = user.name
+            form.ava.data = user.img
+            form.about_me.data = user.about_me
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        if form.ava.data:
+            image = convertToBinaryData(pathToAvatar, form.ava.data)
+        else:
+            image = convertToBinaryData(pathToAvatar, "default.jpg")
+        user = db_sess.query(User).filter(User.login == login).first()
+        if user:
+            user.name = form.name.data
+            user.img = image
+            user.surname = form.surname.data
+            user.about_me = form.about_me.data
+            db_sess.commit()
+            return redirect(f'/profile/{login}')
+        else:
+            abort(404)
+    return render_template("edit_profile.html", form=form, page_title=f"Редактирование профиля {login}",
+                           title="Редактирование профиля")
+
+
 @app.route("/posts/<string:login>")
 def posts_of_users(login: str):
     db_sess = db_session.create_session()
     posts = db_sess.query(Post).filter(Post.creator_login == login)
-    for post in posts:
-        print(post)
     return render_template("posts_of_user.html", posts=posts, title=f"Посты {login}")
+
+
+@app.route("/like_post/<int:id>")
+def like_post(id: int):
+    db_sess = db_session.create_session()
+    post = db_sess.query(Post).filter(Post.id == id).first()
+    if str(current_user.id) in post.list_likes:
+        ll = post.list_likes.split()
+        del ll[ll.index(str(current_user.id))]
+        post.list_likes = " ".join(ll)
+        db_sess.commit()
+    else:
+        ll = post.list_likes.split()
+        ll.append(str(current_user.id))
+        post.list_likes = " ".join(ll)
+        db_sess.commit()
+    return redirect(f"/post_review/{id}")
 
 
 @app.route("/comments/<int:id>")
@@ -241,6 +292,110 @@ def add_comment(id):
         return redirect(f'/comments/{id}')
     return render_template("add_comment.html", form=form, page_title="Комментарий к посту",
                            title="Написание комментария")
+
+
+@app.route("/edit_comment/<int:id>", methods=["GET", "POST"])
+def edit_comment(id: int):
+    form = CommentForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        comment = db_sess.query(Comment).filter(Comment.id == id).first()
+        if comment:
+            form.text.data = comment.text
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        comment = db_sess.query(Comment).filter(Comment.id == id).first()
+        if comment:
+            comment.text = form.text.data
+            db_sess.commit()
+            return redirect(f'/comments/{id}')
+        else:
+            abort(404)
+    return render_template("add_comment.html", form=form, page_title=f"Редактирование комментария",
+                           title="Редактирование комментария")
+
+
+@app.route("/liked_posts")
+def liked_posts():
+    db_sess = db_session.create_session()
+    liked_posts = db_sess.query(Post).all()
+    return render_template("liked_posts.html", liked_posts=liked_posts, title="Понравившиеся посты")
+
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    db_sess = db_session.create_session()
+    search_posts = None
+    if request.method == "GET":
+        search_posts = db_sess.query(Post).all()
+        print(search_posts)
+    elif request.method == "POST":
+        if request.form.get('search'):
+            search_str = request.form.get('search')
+            if request.form.get('is_blog') == "true1":
+                if request.form.get('is_training') == "true2":
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_blog == True, Post.is_training == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_blog == True, Post.is_training == True).all()
+                else:
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_blog == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_blog == True).all()
+            else:
+                if request.form.get('is_training') == "true2":
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_training == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_training == True).all()
+                else:
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(search_str == Post.post_name).all()
+            print(search_posts)
+        else:
+            if request.form.get('is_blog') == "true1":
+                if request.form.get('is_training') == "true2":
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(Post.is_blog == True, Post.is_training == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(Post.is_blog == True, Post.is_training == True).all()
+                else:
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(Post.is_blog == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(Post.is_blog == True).all()
+            else:
+                if request.form.get('is_training') == "true2":
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(Post.is_training == True, Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).filter(Post.is_training == True).all()
+                else:
+                    if request.form.get('is_recipe') == "true3":
+                        search_posts = db_sess.query(Post).filter(Post.is_recipe == True).all()
+                    else:
+                        search_posts = db_sess.query(Post).all()
+            print(search_posts)
+    return render_template("search.html", posts=search_posts, title="Поиск постов")
+
+
+@app.route("/give_admin/<string:login>")
+def give_admin(login: str):
+    db_sess = db_session.create_session()
+    if current_user.role != "admin" and current_user.role != "main admin":
+        return redirect("/")
+    user = db_sess.query(User).filter(User.login == login).first()
+    if user.role == "admin":
+        user.role = "user"
+    else:
+        user.role = "admin"
+    db_sess.commit()
+    return redirect(f"/profile/{login}")
 
 
 if __name__ == '__main__':
