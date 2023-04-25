@@ -40,11 +40,14 @@
 </div>
 {% if current_user.is_authenticated %}
 <div class="btns">
-    {% if post.is_liked %}
-        <Button onclick="UpdateLike({{ data }})" id="like" class="btn1" style="color: #ff0000;"><i class="fas fa-heart"></i></Button>
-    {% else %}
-        <Button onclick='UpdateLike({{ data }})' id="like" class="btn1" style="color: grey;"><i class="fas fa-heart"></i></Button>
-    {% endif %}
+    <a href="/like_post/{{ post.id }}">
+        {% set cur_id = current_user.id | string() %}
+        {% if cur_id in post.list_likes.split() %}
+            <Button onclick="UpdateLike({{ data }})" id="like" class="btn1" style="color: #ff0000;"><i class="fas fa-heart"></i></Button>
+        {% else %}
+            <Button onclick='UpdateLike({{ data }})' id="like" class="btn1" style="color: grey;"><i class="fas fa-heart"></i></Button>
+        {% endif %}
+    </a>
     <a href="/comments/{{ post.id }}"><Button onmouseover="Toggle21();" onmouseout="Toggle22();" id="comment" class="btn2">
         <i class="bi bi-chat"></i></Button></a>
 </div>

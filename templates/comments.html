@@ -10,10 +10,10 @@
             <p>{{ comment.text }}</p>
         </div>
         <div class="comment-meta">
-            <time>{{ comment.create_date }}</time>
+            <time>{{ comment.comment_date }}</time>
             <a href="/profile/{{ comment.author_login }}"><span class="author">{{ comment.author_name }} {{ comment.author_surname }}</span></a>
         </div>
-        {% if current_user.is_authenticated and comment.author_login == current_user.login %}
+        {% if current_user.is_authenticated and (comment.author_login == current_user.login or current_user.role == "admin") %}
         <div>
             <a href="/edit_comment/{{ comment.id }}" class="btn btn-warning">Изменить</a>
         </div>

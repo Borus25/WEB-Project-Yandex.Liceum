@@ -1,7 +1,6 @@
 import json
 from flask import Flask, render_template, redirect, request, abort
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-import datetime
 from data import db_session
 from data.comments import Comment
 from data.posts import Post
@@ -11,6 +10,7 @@ from forms.user import EditForm, RegisterForm, LoginForm
 from forms.post import PostForm
 import os
 
+
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -19,6 +19,17 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 pathToImg = "C:/Users/Maxim/PycharmProjects/WEB site/static/img"
 pathToAvatar = pathToImg + "/avatar"
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db_sess = db_session.create_session()
+    db_sess.rollback()
+    return render_template('600.html'), 500
 
 
 def convertToBinaryData(path, filename):
@@ -64,6 +75,8 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    if current_user.is_authenticated:
+        abort(404)
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -88,6 +101,8 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        abort(404)
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -102,13 +117,10 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
-@app.route("/example")
-def example():
-    return render_template("example_html.html")
-
-
 @app.route("/add_post", methods=["GET", "POST"])
 def add_post():
+    if not current_user.is_authenticated:
+        abort(404)
     form = PostForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -139,9 +151,12 @@ def add_post():
 
 @app.route("/edit_post/<int:id>", methods=['GET', 'POST'])
 def edit_post(id: int):
+    db_sess = db_session.create_session()
+    cr_id = db_sess.query(Post).filter(Post.id == id).first()
+    if not current_user.is_authenticated or current_user.id != cr_id.creator_id:
+        abort(404)
     form = PostForm()
     if request.method == "GET":
-        db_sess = db_session.create_session()
         post = db_sess.query(Post).filter(Post.id == id,
                                           (Post.user == current_user) | (Post.user == current_user == 1)).first()
         if post:
@@ -179,6 +194,9 @@ def edit_post(id: int):
 @login_required
 def job_delete(id: int):
     db_sess = db_session.create_session()
+    cr_id = db_sess.query(Post).filter(Post.id == id).first()
+    if not current_user.is_authenticated or current_user.id != cr_id.creator_id:
+        abort(404)
     post = db_sess.query(Post).filter(Post.id == id,
                                      (Post.user == current_user) | (Post.user == current_user == 1)).first()
     if post:
@@ -210,9 +228,12 @@ def profile(login: str):
 
 @app.route("/edit_profile/<string:login>", methods=['GET', 'POST'])
 def edit_profile(login: str):
+    db_sess = db_session.create_session()
+    us_id = db_sess.query(User).filter(User.login == login).first()
+    if not current_user.is_authenticated or current_user.id != us_id.id:
+        abort(404)
     form = EditForm()
     if request.method == "GET":
-        db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.login == login).first()
         if user:
             form.surname.data = user.surname
@@ -226,7 +247,7 @@ def edit_profile(login: str):
         if form.ava.data:
             image = convertToBinaryData(pathToAvatar, form.ava.data)
         else:
-            image = convertToBinaryData(pathToAvatar, "default.jpg")
+            image = convertToBinaryData(pathToAvatar, "defaultava.jpg")
         user = db_sess.query(User).filter(User.login == login).first()
         if user:
             user.name = form.name.data
@@ -251,6 +272,8 @@ def posts_of_users(login: str):
 @app.route("/like_post/<int:id>")
 def like_post(id: int):
     db_sess = db_session.create_session()
+    if not current_user.is_authenticated:
+        abort(404)
     post = db_sess.query(Post).filter(Post.id == id).first()
     if str(current_user.id) in post.list_likes:
         ll = post.list_likes.split()
@@ -277,6 +300,8 @@ def comments(id):
 
 @app.route("/comments/<int:id>/add_comment", methods=["GET", "POST"])
 def add_comment(id):
+    if not current_user.is_authenticated:
+        abort(404)
     form = CommentForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -296,6 +321,10 @@ def add_comment(id):
 
 @app.route("/edit_comment/<int:id>", methods=["GET", "POST"])
 def edit_comment(id: int):
+    db_sess = db_session.create_session()
+    comment = db_sess.query(Comment).filter(Comment.id == id).first()
+    if not current_user.is_authenticated or comment.author_login != current_user.login:
+        abort(404)
     form = CommentForm()
     if request.method == "GET":
         db_sess = db_session.create_session()
@@ -319,6 +348,8 @@ def edit_comment(id: int):
 
 @app.route("/liked_posts")
 def liked_posts():
+    if not current_user.is_authenticated:
+        abort(404)
     db_sess = db_session.create_session()
     liked_posts = db_sess.query(Post).all()
     return render_template("liked_posts.html", liked_posts=liked_posts, title="Понравившиеся посты")
@@ -387,9 +418,11 @@ def search():
 @app.route("/give_admin/<string:login>")
 def give_admin(login: str):
     db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.login == login).first()
+    if not current_user.is_authenticated or user.id != current_user.id:
+        abort(500)
     if current_user.role != "admin" and current_user.role != "main admin":
         return redirect("/")
-    user = db_sess.query(User).filter(User.login == login).first()
     if user.role == "admin":
         user.role = "user"
     else:

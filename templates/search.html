@@ -1,16 +1,31 @@
-{% extends "base.html" %}
+ {% extends "base.html" %}
 
 {% block content %}
 <head>
 	<link rel="stylesheet" href="../static/css/example_css.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css"
+          integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/css/for_search.css">
 </head>
 <h1 style="text-align: center">{{ title }}</h1>
-<div class="btns1">
-    {% if current_user.is_authenticated %}
-	    <a href="/add_post"><button class="btn btn-success rounded-pill px-3" type="button">Добавить<br>пост</button></a>
-    {% endif %}
-	<a href="/search"><button class="btn btn-dark rounded-pill px-3" type="button" style="width: 100px; height: 60px">Поиск</button></a>
-</div>
+<form method="POST">
+    <p>
+        <input type="text" placeholder="Введите фрагмент названия поста" name="search">
+        <br>
+        <label>Вид поста: </label>
+        <br/>
+        <input type="checkbox" class="checkbox" name="is_blog" id="checkbox1" value="true1"/>
+        <label for="checkbox1">Блог:</label>
+        <br/>
+        <input type="checkbox" class="checkbox" name="is_training" id="checkbox2" value="true2" />
+        <label for="checkbox2">Тренировка:</label>
+        <br/>
+        <input type="checkbox" class="checkbox" name="is_recipe" id="checkbox3" value="true3"/>
+        <label for="checkbox3">Питание:</label>
+        <br/>
+    </p>
+    <button type="submit" class="btn btn-primary" >Отправить</button>
+</form>
 {% for post in posts %}
     <div class="container">
         <div class="post">
@@ -33,13 +48,13 @@
                 </div>
             </div>
         </div>
-            <div class="btns">
+        <div class="btns">
                 <a href="/post_review/{{ post.id }}"><button type="button" class="btn btn-info">Читать дальше</button></a>
                 {% if current_user.is_authenticated and (post.creator_id == current_user.id or current_user.role == "admin") %}
                     <a href="/edit_post/{{ post.id }}" class="btn btn-warning" style="margin-left: 36px;">Изменить</a>
                     <a href="/post_delete/{{ post.id }}" class="btn btn-danger" style="margin-left: 36px;">Удалить пост</a>
                 {% endif %}
-            </div>
+        </div>
     </div>
 {% endfor %}
 

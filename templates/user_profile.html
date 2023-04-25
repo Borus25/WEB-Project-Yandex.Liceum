@@ -15,12 +15,27 @@
     <p>Имя: {{ user.name }}</p>
     <p>Фамилия: {{ user.surname }}</p>
     <p>Логин: {{ user.login }}</p>
+    <p>О себе: {{ user.about_me }}</p>
+    <p>Роль: {{ user.role }}</p>
     <div class="btns">
-        <button>Понравившиеся</button>
         {% if current_user.is_authenticated and user.id == current_user.id %}
-            <button>Изменить профиль</button>
+            <a href="/liked_posts"><button type="button" class="btn btn-outline-danger">Понравившиеся</button></a>
         {% endif %}
-        <a href="/posts/{{ user.login }}"><button>Посты {{ user.login }}</button></a>
+        {% if current_user.is_authenticated and (user.id == current_user.id or current_user.role == "admin" or current_user.role == "main admin") %}
+            <a href="/edit_profile/{{ user.login }}"><button type="button" class="btn btn-outline-danger">Изменить профиль</button></a>
+        {% endif %}
+        <a href="/posts/{{ user.login }}"><button type="button" class="btn btn-outline-danger">Посты {{ user.login }}</button></a>
+        {% if current_user.is_authenticated and (current_user.role == "admin" or current_user.role == "main admin") %}
+            {% if user.role != "main admin" %}
+                <a href="/give_admin/{{ user.login }}"><button type="button" class="btn btn-outline-danger">
+                    {% if user.role == "user" %}
+                        Дать роль модератора
+                    {% elif user.role == "admin" %}
+                        Вернуть роль пользователя
+                    {% endif %}
+                </button></a>
+            {% endif %}
+        {% endif %}
     </div>
 </div>
 

@@ -16,6 +16,8 @@ class User(SqlAlchemyBase, UserMixin):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     img = sqlalchemy.Column(sqlalchemy.BLOB, default=None, nullable=True)
     login = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
+    about_me = sqlalchemy.Column(sqlalchemy.Text, nullable=True, default="")
+    role = sqlalchemy.Column(sqlalchemy.String, nullable=True, default="user")
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     posts = orm.relationship("Post", back_populates='user')

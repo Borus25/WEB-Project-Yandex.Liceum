@@ -2,7 +2,7 @@ div {
   position: absolute;
   left: 1345px;
   width: 100px;
-  top: 150px
+  top: 150px;
   height: 140px;
 }
 
@@ -12,6 +12,11 @@ div button {
   height: 50px;
   left: 0px;
   top: 0px;
+}
+
+div.btns1{
+    display: block;
+    background-color: white;
 }
 
 .button1 {

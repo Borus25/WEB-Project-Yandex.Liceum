@@ -29,7 +29,7 @@
         </div>
     </div>
     <a href="/post_review/{{ post.id }}">Читать дальше</a>
-    {% if current_user.is_authenticated and post.creator_id == current_user.id %}
+    {% if current_user.is_authenticated and (post.creator_id == current_user.id or current_user.role == "admin") %}
         <div>
             <a href="/edit_post/{{ post.id }}" class="btn btn-warning">Изменить</a>
             <a href="/post_delete/{{ post.id }}" class="btn btn-danger">Удалить пост</a>

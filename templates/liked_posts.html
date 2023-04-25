@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+	<link rel="stylesheet" href="../static/css/example_css.css">
+</head>
+<h1 style="text-align: center">{{ title }}</h1>
+<div>
+    {% if current_user.is_authenticated %}
+	    <a href="/add_post"><button>Добавить<br>пост</button></a>
+    {% endif %}
+	<a href="/search"><button class="button1">Поиск</button></a>
+</div>
+{% set cur_id = current_user.id | string() %}
+{% for post in liked_posts %}
+    {% if cur_id in post.list_likes.split() %} 
+        <div class="container">
+            <div class="post">
+                <div class="post-content">
+                    <div class="post-header">
+                        <h1>{{ post.post_name }}</h1>
+                        <div class="post-meta">
+                            <time>{{ post.create_date }}(ГГГГ-ММ-ДД)</time>
+                            <span class="author">{{ post.creator_name }} {{ post.creator_surname }}</span>
+                            {% if post.is_blog %}
+                                <span class="category">Блог</span>
+                            {% endif %}
+                            {% if post.is_training %}
+                                <span class="category">Тренировка</span>
+                            {% endif %}
+                            {% if post.is_recipe %}
+                                <span class="category">Питание</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="/post_review/{{ post.id }}">Читать дальше</a>
+        {% if current_user.is_authenticated and (post.creator_id == current_user.id or current_user.role == "admin") %}
+            <div>
+                <a href="/edit_post/{{ post.id }}" class="btn btn-warning">Изменить</a>
+                <a href="/post_delete/{{ post.id }}" class="btn btn-danger">Удалить пост</a>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
+{% endblock %}

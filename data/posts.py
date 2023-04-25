@@ -26,6 +26,7 @@ class Post(SqlAlchemyBase, UserMixin):
     is_blog = sqlalchemy.Column(sqlalchemy.BOOLEAN, default=False)
     is_training = sqlalchemy.Column(sqlalchemy.BOOLEAN, default=False)
     is_recipe = sqlalchemy.Column(sqlalchemy.BOOLEAN, default=False)
+    list_likes = sqlalchemy.Column(sqlalchemy.String, nullable=False, default="")
 
     def __repr__(self):
         return f'<User> {self.id} {self.post_name} {self.create_date}'

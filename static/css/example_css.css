@@ -9,7 +9,6 @@ body {
 }
 .container {
     max-width: 960px;
-
     margin: 50px auto;
     padding: 0 15px;
     background: white;
@@ -66,4 +65,7 @@ p {
         border-left: 4px solid #D8D8D8;
         margin-left: -30px;
     }
+}
+.btns{
+    background-color: white;
 }
