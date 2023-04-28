@@ -75,8 +75,6 @@ def index():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    if current_user.is_authenticated:
-        abort(404)
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
@@ -101,8 +99,6 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if current_user.is_authenticated:
-        abort(404)
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
