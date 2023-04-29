@@ -17,7 +17,7 @@ login_manager.init_app(app)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 
 
-pathToImg = "C:/Users/Maxim/PycharmProjects/WEB site/static/img"
+pathToImg = os.getcwd() + "/static/img"
 pathToAvatar = pathToImg + "/avatar"
 
 
