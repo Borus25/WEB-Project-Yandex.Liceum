@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<head>
+    <link rel="stylesheet" href="../static/css/headings.css">
+</head>
 <h1 style="text-align: center">Комментарии к посту {{ login }}</h1>
 <a href="/comments/{{ id }}/add_comment"><button>Оставить комментарий</button></a>
 {% for comment in comments %}

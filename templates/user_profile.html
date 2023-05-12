@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
 	<link rel='stylesheet' href="../static/css/for_profile.css">
+    <link rel="stylesheet" href="../static/css/headings.css">
 </head>
 
 <div class="profile">
@@ -12,11 +13,11 @@
     {% else %}
         <img src="../static/img/avatar/defaultava.jpg">
     {% endif %}
-    <p>Имя: {{ user.name }}</p>
-    <p>Фамилия: {{ user.surname }}</p>
-    <p>Логин: {{ user.login }}</p>
-    <p>О себе: {{ user.about_me }}</p>
-    <p>Роль: {{ user.role }}</p>
+    <p>Имя: <span style="color:purple">{{ user.name }}</span></p>
+    <p>Фамилия: <span style="color:purple">{{user.surname}}</span></p>
+    <p>Логин: <span style="color:purple">{{ user.surname }}</span></p>
+    <p>О себе: <span style="color:purple">{{ user.about_me }}</span></p>
+    <p>Роль: <span style="color:purple">{{ user.role }}</span></p>
     <div class="btns">
         {% if current_user.is_authenticated and user.id == current_user.id %}
             <a href="/liked_posts"><button type="button" class="btn btn-outline-danger">Понравившиеся</button></a>
